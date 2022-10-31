@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <input placeholder="input order UID" name="orderUID" type="text">
+  <br />
+  <button onclick="getData()">send</button>
+  <br />
+  <textarea></textarea>
+</body>
+<script>
+  const button = document.querySelector('button');
+  const input = document.querySelector('input');
+  const textarea = document.querySelector('textarea')
+
+  //button.addEventListener('click', getData('http://localhost:8080/api/v1/order/').then((data) => { textarea.value }));
+
+
+  async function getData() {
+    const response = await fetch('http://localhost:8080/api/v1/order/' + input.value,
+      {
+        method: 'GET',
+        mode: 'cors', // no-cors, *cors, same-origin    
+        credentials: 'same-origin', // include, *same-origin, omit
+        headers: {
+          'Content-Type': 'application/json'
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        }
+      })
+
+    try { 
+      const order = await response.text(); 
+      textarea.value = order;
+    }
+    catch (err) {
+      console.log(err)
+    }
+
+  }
+
+
+</script>
+
+
+
+</html>

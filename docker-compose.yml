@@ -1,0 +1,72 @@
+version: '3.8'
+
+networks:
+  wb_l0:
+
+services:
+
+  nats-streaming-server:
+    image: nats-streaming:alpine
+    restart: unless-stopped
+    container_name: wb_l0-nats-streaming-server
+    ports:
+      - ":4222"
+      - ":8222"
+    env_file:
+      - '.env'
+    command:
+      - "--store"
+      - "file"
+      - "--dir"
+      - "data"
+    volumes:
+      - ./volumes/nats_data_store:/data:Z
+
+  db:
+    image: postgres
+    restart: unless-stopped
+    container_name: wb_l0-postgres
+    ports:
+      - "5432:5432"
+    env_file:
+      - ".env"
+    volumes:
+      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - ./volumes/postgres/data:/var/lib/postgresql/data:Z
+
+  
+  nats-publisher:
+    restart: unless-stopped
+    container_name: wb_l0-nats-publisher
+    build:
+      context: .
+      target: publisher
+    ports:
+      - "8081:8081"
+    expose:
+      - "8081"
+    depends_on:
+      - nats-streaming-server      
+    links:
+      - nats-streaming-server
+    env_file:
+      - ".env"
+
+  nats-subscriber:
+    restart: unless-stopped
+    container_name: wb_l0-nats-subscriber
+    build:
+      context: .
+      target: subscriber
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+    depends_on:
+      - db
+      - nats-streaming-server
+    links:
+      - db
+      - nats-streaming-server   
+    env_file:
+      - ".env"
